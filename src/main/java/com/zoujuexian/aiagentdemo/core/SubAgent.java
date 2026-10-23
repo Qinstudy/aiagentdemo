@@ -42,7 +42,9 @@ public class SubAgent {
         this.id = id;
         this.name = name;
         this.chatClient = chatClient;
+        // 分配独立的私有记忆容器（不启用摘要压缩，物理隔离）
         this.memory = ChatMemory.forSubAgent();
+        // 注入子代理专属岗位职责
         this.memory.setSystemPrompt(systemPrompt);
         this.createdAt = LocalDateTime.now();
     }

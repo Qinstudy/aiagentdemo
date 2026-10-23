@@ -60,7 +60,7 @@ public class RagService {
             @Value("${rag.rerank.path:/rerank}") String rerankPath,
             @Value("${rag.rerank.model:rerank}") String rerankModel) throws IOException, URISyntaxException {
         this.vectorStore = new VectorStore(embeddingModel);
-        this.chunkSplitter = new TextSplitter(CHUNK_SIZE, CHUNK_OVERLAP);
+        this.chunkSplitter = new TextSplitter(CHUNK_SIZE, CHUNK_OVERLAP); // 构造函数初始化，创建TextSplitter 对象
 
         List<Retriever> retrievers = List.of(
                 new SemanticRetriever(vectorStore),
@@ -119,6 +119,17 @@ public class RagService {
      * @return 检索到的相关知识文本（多个文档块拼接）
      */
     public String query(String question) {
+        return query(question, true);
+    }
+
+    /**
+     * 检索知识库中与问题最相关的文档内容（支持开启/关闭 Rerank 对照）
+     *
+     * @param question     用户问题
+     * @param enableRerank 是否启用 Rerank 深度精排模型
+     * @return 检索到的相关知识文本（多个文档块拼接）
+     */
+    public String query(String question, boolean enableRerank) {
         if (!knowledgeLoaded) {
             return "知识库尚未加载，请先调用 loadKnowledgeBase 加载知识库。";
         }
@@ -129,8 +140,14 @@ public class RagService {
             return "知识库中没有找到与问题相关的内容。";
         }
 
-        // 2. LLM 重排
-        List<Document> relevantDocuments = llmReranker.rerank(question, candidates, TOP_K);
+        // 2. LLM 重排（对照实验开关）
+        List<Document> relevantDocuments;
+        if (enableRerank) {
+            relevantDocuments = llmReranker.rerank(question, candidates, TOP_K);
+        } else {
+            System.out.println("  [未开启 Rerank 对照组] 直接取多路召回 RRF 融合的前 " + TOP_K + " 个候选");
+            relevantDocuments = candidates.stream().limit(TOP_K).toList();
+        }
 
         // 3. 拼接上下文
         StringBuilder contextBuilder = new StringBuilder();

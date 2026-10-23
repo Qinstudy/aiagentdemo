@@ -121,17 +121,24 @@ public class AgentCore implements InitializingBean , ApplicationContextAware {
     }
 
     /**
-     * 批量注册工具回调
+     * 批量注册工具回调（按名称去重，避免重复工具名导致 Spring AI 异常）
      */
     public void registerToolCallbacks(List<ToolCallback> callbacks) {
-        toolCallbacks.addAll(callbacks);
+        if (callbacks == null) return;
+        for (ToolCallback callback : callbacks) {
+            String name = callback.getToolDefinition().name();
+            toolCallbacks.removeIf(existing -> existing.getToolDefinition().name().equals(name));
+            toolCallbacks.add(callback);
+        }
     }
 
     /**
      * 批量注册工具回调
      */
     public void registerToolCallbacks(ToolCallback... callbacks) {
-        toolCallbacks.addAll(Arrays.asList(callbacks));
+        if (callbacks != null) {
+            registerToolCallbacks(Arrays.asList(callbacks));
+        }
     }
 
     /**

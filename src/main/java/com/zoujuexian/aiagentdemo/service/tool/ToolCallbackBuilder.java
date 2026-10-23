@@ -16,6 +16,16 @@ import java.util.function.Function;
  */
 public final class ToolCallbackBuilder {
 
+    private static final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger> TOOL_CALL_COUNTS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static int getCallCount(String toolName) {
+        return TOOL_CALL_COUNTS.computeIfAbsent(toolName, k -> new java.util.concurrent.atomic.AtomicInteger(0)).get();
+    }
+
+    public static void resetCallCounts() {
+        TOOL_CALL_COUNTS.clear();
+    }
+
     private ToolCallbackBuilder() {
     }
 
@@ -55,13 +65,15 @@ public final class ToolCallbackBuilder {
 
             @Override
             public String call(String toolInput) {
+                TOOL_CALL_COUNTS.computeIfAbsent(name, k -> new java.util.concurrent.atomic.AtomicInteger(0)).incrementAndGet();
+
                 System.out.println("\n╔══════════════════════════════════════════");
                 System.out.println("║ 🔧 [Tool Call] " + name);
                 System.out.println("║ 📥 入参: " + truncate(toolInput, 200));
                 System.out.println("╚══════════════════════════════════════════");
 
                 long startTime = System.currentTimeMillis();
-                try {
+                try {// ToolCallbackBuilder，调用工具类下面的执行方法，例如：GetStockPriceTool.execute
                     String result = executor.apply(toolInput);
                     long elapsed = System.currentTimeMillis() - startTime;
 

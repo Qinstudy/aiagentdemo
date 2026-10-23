@@ -63,6 +63,7 @@ public class McpClient {
             throw new IllegalStateException("该 MCP 服务已连接: " + serverUrl);
         }
 
+        // McpSyncClient 来自 Anthropic 官方规范的底层 Java SDK（io.modelcontextprotocol）
         McpSyncClient mcpClient;
         McpSchema.InitializeResult initResult;
 
@@ -88,10 +89,13 @@ public class McpClient {
         String serverVersion = initResult.serverInfo().version();
         System.out.println("[MCP Client] 已连接到: " + serverName + " v" + serverVersion);
 
+
+        // 步骤 2：【关键转译中枢】Spring AI 提供的适配器介入！ SyncMcpToolCallbackProvider 来自 org.springframework.ai.mcp
         SyncMcpToolCallbackProvider toolCallbackProvider = SyncMcpToolCallbackProvider.builder()
                 .mcpClients(mcpClient)
                 .build();
 
+        // 步骤 3：Provider 向高德发送 tools/list，并转译为 Spring AI 的 ToolCallback 数组
         ToolCallback[] rawCallbacks = toolCallbackProvider.getToolCallbacks();
         List<String> toolNames = new ArrayList<>();
         ToolCallback[] toolCallbacks = new ToolCallback[rawCallbacks.length];

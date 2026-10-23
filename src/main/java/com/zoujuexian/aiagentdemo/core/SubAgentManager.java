@@ -36,7 +36,7 @@ public class SubAgentManager {
      *
      * @param name         SubAgent 名称（描述其角色）
      * @param systemPrompt SubAgent 的角色定义和行为约束
-     * @return 创建的 SubAgent 实例
+     * @return 创建的 SubAgent 实例。 ChatMemory.forSubAgent() 分配私有的ChatMemory 实例
      */
     public SubAgent create(String name, String systemPrompt) {
         String agentId = generateAgentId();
@@ -53,6 +53,7 @@ public class SubAgentManager {
      * @param systemPrompt SubAgent 的角色定义
      * @param initialTask  首个任务消息
      * @return SubAgent 对首个任务的回复
+     * 子代理将回复存入自己的私有记忆，并把结果作为纯文本 String 向上交出。
      */
     public String createAndChat(String name, String systemPrompt, String initialTask) {
         SubAgent subAgent = create(name, systemPrompt);

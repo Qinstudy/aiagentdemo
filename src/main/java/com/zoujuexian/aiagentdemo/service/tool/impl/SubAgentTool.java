@@ -110,6 +110,7 @@ public class SubAgentTool implements InnerTool {
     private String executeCreate(String argumentsJson) {
         JSONObject args = JSON.parseObject(argumentsJson);
         String name = args.getString("name");
+        // 并将大模型生成的子人设作为其独占的 SystemMessage
         String systemPrompt = args.getString("system_prompt");
         String task = args.getString("task");
         return subAgentManager.createAndChat(name, systemPrompt, task);
